@@ -1,0 +1,245 @@
+/* 新登录页面样式 - 美化版 + 验证码适配 */
+
+/* 背景渐变 */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  min-height: 100vh;
+}
+
+/* 居中容器 */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 3.5rem);
+  padding: 20px;
+}
+
+/* 登录卡片 */
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 35px;
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 头部 */
+.login-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.login-header h2 {
+  color: #333;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  color: #888;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 表单 */
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 输入框组 */
+.form-group {
+  position: relative;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.form-group label svg {
+  color: #888;
+}
+
+.form-group .form-control {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  border: 2px solid #e8e8e8;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.form-group .form-control:focus {
+  outline: none;
+  border-color: #667eea;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+/* 验证码容器 */
+#captcha-container {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 10px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+#captcha-container:hover {
+  border-color: #667eea;
+}
+
+.captcha-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  min-height: 20px;
+}
+
+.captcha-success {
+  color: #52c41a;
+}
+
+.captcha-error {
+  color: #ff4d4f;
+}
+
+/* 登录按钮 */
+.login-card .login_btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card .login_btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.login-card .login_btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-card .login_btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 加载状态 */
+.login-card .login_btn.loading {
+  pointer-events: none;
+}
+
+.login-card .login_btn.loading .login-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 底部 */
+.login-footer {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* 暗色模式适配 */
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+}
+
+[data-theme="dark"] .login-card {
+  background: #2d333b;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .login-header h2 {
+  color: #fff;
+}
+
+[data-theme="dark"] .login-header p {
+  color: #888;
+}
+
+[data-theme="dark"] .form-group label {
+  color: #adbac7;
+}
+
+[data-theme="dark"] .form-group label svg {
+  color: #888;
+}
+
+[data-theme="dark"] .form-group .form-control {
+  background: #1c2128;
+  border-color: #444c56;
+  color: #fff;
+}
+
+[data-theme="dark"] .form-group .form-control:focus {
+  border-color: #667eea;
+  background: #1c2128;
+}
+
+[data-theme="dark"] #captcha-container {
+  background: #1c2128;
+  border-color: #444c56;
+}
+
+[data-theme="dark"] .login-footer {
+  color: #666;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 30px 25px;
+    border-radius: 12px;
+  }
+  
+  .login-header h2 {
+    font-size: 24px;
+  }
+}

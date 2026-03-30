@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="jeessy2" />
+  <title>DDNS-GO</title>
+  <meta name="color-scheme" content="light dark">
+  <link class="theme" rel="stylesheet" type="text/css" href="./static/common.css" />
+  <link rel="stylesheet" href="./static/bootstrap.min.css" />
+  <link rel="stylesheet" href="./static/theme-button.css" />
+  <link rel="stylesheet" href="./static/login.css" />
+  <script src="./static/constant.js"></script>
+  <script src="./static/utils.js"></script>
+  <script src="./static/i18n.js"></script>
+  <script src="./static/tooltips.js"></script>
+  
+  <!-- 极验验证码 -->
+  <script src="https://static.geetest.com/static/tools/gt.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="navbar navbar-dark bg-dark shadow-sm">
+      <div class="button-container container d-flex justify-content-between">
+        <a target="blank" href="https://github.com/jeessy2/ddns-go" class="navbar-brand d-flex align-items-center">
+          <strong>DDNS-GO</strong>
+        </a>
+        <span class="theme-button gg-dark-mode" data-toggle="tooltip" data-placement="bottom" data-html="true"
+          data-i18n-attr="title:themeTooltip" id="themeButton"></span>
+      </div>
+    </div>
+  </header>
+
+  <main role="main">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <h2>DDNS-GO</h2>
+          <p data-i18n="LoginTitle">安全登录</p>
+        </div>
+        
+        <form id="login">
+          <div class="form-group">
+            <label for="Username" data-i18n="Username">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              用户名
+            </label>
+            <input class="form-control form" name="Username" id="Username" autocomplete="username" placeholder="请输入用户名" />
+          </div>
+
+          <div class="form-group">
+            <label for="Password" data-i18n="Password">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              密码
+            </label>
+            <input class="form-control form" type="password" name="Password" id="Password" autocomplete="current-password" placeholder="请输入密码" />
+          </div>
+
+          <!-- 验证码区域 -->
+          <div class="form-group">
+            <div id="captcha-container">
+              <div id="gt-slide"></div>
+            </div>
+            <div id="captcha-tip" class="captcha-tip"></div>
+          </div>
+
+          <button data-i18n="{{- if .EmptyUser -}}LoginInit{{else}}Login{{- end -}}""
+            class="btn btn-primary login_btn" id="loginBtn" disabled>
+            <span data-i18n="{{- if .EmptyUser -}}LoginInit{{else}}Login{{- end -}}">
+              {{- if .EmptyUser -}}初始化登录{{else}}登 录{{- end -}}
+            </span>
+            <span class="login-spinner"></span>
+          </button>
+        </form>
+        
+        <div class="login-footer">
+          <span data-i18n="SecurityTip">受保护的安全登录</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+
+<script src="./static/theme.js"></script>
+<script>
+  // 全局变量存储验证码状态
+  let captchaValid = false;
+  let captchaInstance = null;
+  let loginBtn = null;
+
+  // 初始化验证码
+  function initCaptcha() {
+    loginBtn = document.getElementById('loginBtn');
+    
+    // 调用后端获取极验初始化的 challenge
+    fetch('./captchaInit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.code === 200 && data.data) {
+        initGeetest({
+          gt: data.data.gt,
+          challenge: data.data.challenge,
+          new_captcha: data.data.new_captcha,
+          product: "float",
+          width: "100%",
+          lang: "zh-cn",
+          https: true
+        }, function(captchaObj) {
+          captchaInstance = captchaObj;
+          captchaObj.appendTo("#gt-slide");
+          
+          captchaObj.onSuccess(function() {
+            captchaValid = true;
+            loginBtn.disabled = false;
+            document.getElementById('captcha-tip').innerHTML = '<span class="captcha-success">✓ 验证成功</span>';
+          });
+          
+          captchaObj.onError(function() {
+            captchaValid = false;
+            loginBtn.disabled = true;
+          });
+          
+          captchaObj.onClose(function() {
+            captchaValid = false;
+            loginBtn.disabled = true;
+          });
+        });
+      } else {
+        // 如果获取验证码配置失败，允许直接登录（兼容老版本或配置错误）
+        console.warn('验证码初始化失败，将使用无验证码模式');
+        captchaValid = true;
+        loginBtn.disabled = false;
+      }
+    })
+    .catch(err => {
+      console.error('获取验证码配置失败:', err);
+      // 失败时允许直接登录
+      captchaValid = true;
+      loginBtn.disabled = false;
+    });
+  }
+
+  // 登录
+  document.querySelectorAll(".login_btn").forEach(($el) => {
+    $el.addEventListener("click", async (e) => {
+      e.preventDefault();
+      
+      // 检查验证码
+      if (!captchaValid) {
+        showMessage({
+          content: '请先完成滑动验证',
+          type: 'error',
+          duration: 3000,
+        });
+        return;
+      }
+
+      const btn = e.currentTarget;
+      const btnText = btn.querySelector('span:not(.login-spinner)');
+      const originalText = btnText.textContent;
+      
+      // 显示加载状态
+      btn.disabled = true;
+      btn.classList.add('loading');
+      btnText.textContent = '登录中...';
+
+      try {
+        // 获取验证码结果
+        let captchaResult = { valid: true };
+        if (captchaInstance && captchaInstance.getValidate) {
+          captchaResult = captchaInstance.getValidate();
+        }
+
+        const resp = await request.post("./loginFunc", {
+          Username: document.getElementById("Username").value,
+          Password: document.getElementById("Password").value,
+          Captcha: captchaResult,
+        });
+
+        if (resp.Code !== 200) {
+          showMessage({
+            content: resp.Msg,
+            type: "error",
+            duration: 5000,
+          });
+          // 重置验证码
+          if (captchaInstance && captchaInstance.reset) {
+            captchaInstance.reset();
+          }
+          captchaValid = false;
+          loginBtn.disabled = true;
+        } else {
+          showMessage({
+            content: '登录成功，正在跳转...',
+            type: 'success',
+            duration: 1500,
+          });
+          setTimeout(() => {
+            window.location.href = "./";
+          }, 500);
+        }
+      } catch (err) {
+        showMessage({
+          content: err.toString(),
+          type: "error",
+          duration: 5000,
+        });
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        btnText.textContent = originalText;
+      }
+    });
+  });
+
+  // 页面加载完成后初始化验证码
+  document.addEventListener('DOMContentLoaded', initCaptcha);
+</script>
+
+</html>
